@@ -1,16 +1,49 @@
 "use client";
+import { useActionState } from "react";
 
-import { logIn } from "@/app/actions";
+type Props = {
+  action: (
+    prevState: unknown,
+    formData: FormData
+  ) => Promise<
+    | {
+        errors: {
+          email?: string[] | undefined;
+          password?: string[] | undefined;
+        };
+      }
+    | undefined
+  >;
+};
 
-export const Form = () => {
+export const Form = ({ action }: Props) => {
+  const [state, formAction, isPending] = useActionState(action, null);
   return (
     <form
       className="flex flex-col items-center justify-center gap-10 min-h-screen"
-      onSubmit={logIn}
+      action={formAction}
     >
-      <input className="w-50 border border-2 rounded" />
-      <input className="w-50 border border-2 rounded" type="password" />
-      <button className="bg-blue-500 text-white rounded p-2" type="submit">
+      <input
+        className="w-50 border border-2 rounded"
+        type="email"
+        name="email"
+      />
+      <input
+        className="w-50 border border-2 rounded"
+        type="password"
+        name="password"
+      />
+      {state?.errors && (
+        <div>
+          <p aria-live="polite">{state?.errors.email}</p>
+          <p aria-live="polite">{state?.errors.password}</p>
+        </div>
+      )}
+      <button
+        className="bg-blue-500 text-white rounded p-2 disabled:bg-gray-300"
+        type="submit"
+        disabled={isPending}
+      >
         Submit
       </button>
     </form>
