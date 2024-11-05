@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useCallback, useEffect } from "react";
 
 type Props = {
   action: (
@@ -17,6 +17,13 @@ type Props = {
 };
 
 export const Form = ({ action }: Props) => {
+  const csrfFetch = useCallback(async () => {
+    const data = await fetch(`http://localhost/back/csrf`);
+    const json = await data.json();
+  }, []);
+  useEffect(() => {
+    csrfFetch();
+  }, [csrfFetch]);
   const [state, formAction, isPending] = useActionState(action, null);
   return (
     <form
