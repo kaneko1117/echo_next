@@ -3,22 +3,20 @@ import { logIn, signUp } from "@/actions";
 import { useActionState, useCallback, useEffect, useState } from "react";
 
 type Props = {
-  action: (
-    prevState: unknown,
-    formData: FormData
-  ) => Promise<
+  formAction: (payload: FormData) => void;
+  state:
     | {
         errors: {
           email?: string[] | undefined;
           password?: string[] | undefined;
         };
       }
-    | undefined
-  >;
+    | null
+    | undefined;
+  isPending: boolean;
 };
 
-const Form = ({ action }: Props) => {
-  const [state, formAction, isPending] = useActionState(action, null);
+const Form = ({ formAction, state, isPending }: Props) => {
   return (
     <form
       className="flex flex-col items-center justify-center gap-4"
@@ -42,7 +40,6 @@ const Form = ({ action }: Props) => {
       )}
       <button
         className="bg-blue-500 text-white rounded p-2 disabled:bg-gray-300"
-        type="submit"
         disabled={isPending}
       >
         Submit
@@ -60,12 +57,29 @@ export const AuthForm = () => {
   }, [csrfFetch]);
 
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [logInState, logInAction, isLogInPending] = useActionState(logIn, null);
+  const [signUpState, signUpAction, isSignUpPending] = useActionState(
+    signUp,
+    null
+  );
   return (
     <div className="flex flex-col justify-center items-center min-h-screen">
       <h1 className="m-10 font-bold text-[24px]">
         {isSignUp ? "Sign up" : "Log in"}
       </h1>
-      {isSignUp ? <Form action={signUp} /> : <Form action={logIn} />}
+      {isSignUp ? (
+        <Form
+          state={signUpState}
+          formAction={signUpAction}
+          isPending={isSignUpPending}
+        />
+      ) : (
+        <Form
+          state={logInState}
+          formAction={logInAction}
+          isPending={isLogInPending}
+        />
+      )}
       <button
         onClick={() => setIsSignUp(!isSignUp)}
         className="text-blue-500 p-2 m-4 border border-blue-500 rounded w-50"

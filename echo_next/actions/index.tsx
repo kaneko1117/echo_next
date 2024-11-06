@@ -8,18 +8,22 @@ const fetcher = async (
   body: Record<string, string> | null,
   method: "POST" | "GET"
 ) => {
+  // use serverではcookieを取得できないので、手動で取得する
   const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  const setCookies = allCookies
+    .map((cookie) => `${cookie.name}=${cookie.value};`)
+    .join(" ");
   const csrftoken = cookieStore.get("_csrf");
   const domain = process.env.HOST_DOMAIN;
-  console.log(csrftoken);
   const res = await fetch(`${domain}/${path}`, {
     method: method,
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-TOKEN": csrftoken?.value ? csrftoken.value : "",
+      "X-CSRF-TOKEN": csrftoken?.value || "",
+      Cookie: setCookies,
     },
     body: JSON.stringify(body),
-    credentials: "same-origin",
   });
   if (!res.ok) {
     const error = await res.json();
