@@ -10,27 +10,27 @@ const fetcher = async (
 ) => {
   const cookieStore = await cookies();
   const csrftoken = cookieStore.get("_csrf");
-  console.log(csrftoken?.value);
   const domain = process.env.HOST_DOMAIN;
+  console.log(csrftoken);
   const res = await fetch(`${domain}/${path}`, {
-    method,
+    method: method,
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-TOKEN": csrftoken ? csrftoken.value : "",
+      "X-CSRF-TOKEN": csrftoken?.value ? csrftoken.value : "",
     },
     body: JSON.stringify(body),
+    credentials: "same-origin",
   });
   if (!res.ok) {
-    const response = await res.json();
-    console.log(response);
-    throw new Error("Failed to fetch");
+    const error = await res.json();
+    console.error(error);
+    throw new Error("Network response was not ok");
   }
 
   return res;
 };
 
 export const logIn = async (prevState: unknown, formData: FormData) => {
-  console.log(formData);
   const validatedFields = schema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -40,6 +40,22 @@ export const logIn = async (prevState: unknown, formData: FormData) => {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
     };
+  }
+
+  try {
+    const res = await fetcher(
+      "login",
+      {
+        email: `${formData.get("email")}`,
+        password: `${formData.get("password")}`,
+      },
+      "POST"
+    );
+    return res.json();
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
   }
 };
 

@@ -1,5 +1,6 @@
 "use client";
-import { useActionState, useCallback, useEffect } from "react";
+import { logIn, signUp } from "@/actions";
+import { useActionState, useCallback, useEffect, useState } from "react";
 
 type Props = {
   action: (
@@ -16,18 +17,11 @@ type Props = {
   >;
 };
 
-export const Form = ({ action }: Props) => {
-  const csrfFetch = useCallback(async () => {
-    const data = await fetch(`http://localhost/back/csrf`);
-    const json = await data.json();
-  }, []);
-  useEffect(() => {
-    csrfFetch();
-  }, [csrfFetch]);
+const Form = ({ action }: Props) => {
   const [state, formAction, isPending] = useActionState(action, null);
   return (
     <form
-      className="flex flex-col items-center justify-center gap-10 min-h-screen"
+      className="flex flex-col items-center justify-center gap-4"
       action={formAction}
     >
       <input
@@ -54,5 +48,30 @@ export const Form = ({ action }: Props) => {
         Submit
       </button>
     </form>
+  );
+};
+
+export const AuthForm = () => {
+  const csrfFetch = useCallback(async () => {
+    await fetch(`http://localhost/back/csrf`);
+  }, []);
+  useEffect(() => {
+    csrfFetch();
+  }, [csrfFetch]);
+
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  return (
+    <div className="flex flex-col justify-center items-center min-h-screen">
+      <h1 className="m-10 font-bold text-[24px]">
+        {isSignUp ? "Sign up" : "Log in"}
+      </h1>
+      {isSignUp ? <Form action={signUp} /> : <Form action={logIn} />}
+      <button
+        onClick={() => setIsSignUp(!isSignUp)}
+        className="text-blue-500 p-2 m-4 border border-blue-500 rounded w-50"
+      >
+        {isSignUp ? "click here to log in" : "click here to sign up"}
+      </button>
+    </div>
   );
 };
