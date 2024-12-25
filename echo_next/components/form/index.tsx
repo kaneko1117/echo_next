@@ -49,19 +49,30 @@ const Form = ({ formAction, state, isPending }: Props) => {
 };
 
 export const AuthForm = () => {
-  const csrfFetch = useCallback(async () => {
-    await fetch(`http://localhost/back/csrf`);
-  }, []);
-  useEffect(() => {
-    csrfFetch();
-  }, [csrfFetch]);
-
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [logInState, logInAction, isLogInPending] = useActionState(logIn, null);
   const [signUpState, signUpAction, isSignUpPending] = useActionState(
     signUp,
     null
   );
+
+  const getCsrfToken = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/csrf`);
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    getCsrfToken();
+  }, [getCsrfToken]);
+
   return (
     <div className="flex flex-col justify-center items-center min-h-screen">
       <h1 className="m-10 font-bold text-[24px]">
